@@ -229,9 +229,16 @@ def swap_background(rgb: np.ndarray, backdrop: Image.Image) -> tuple[Image.Image
 
 def process_image(path: Path, session, bg_poste: Image.Image,
                   bg_limpo: Image.Image):
-    """Devolve (image_out:Image, tipo:str, confianca:float, motivo:str|None)."""
+    """Abre um ficheiro e processa. Devolve (image_out, tipo, conf, motivo)."""
     with Image.open(path) as im:
         rgb_img = im.convert("RGB")
+    return process_pil(rgb_img, session, bg_poste, bg_limpo)
+
+
+def process_pil(rgb_img: Image.Image, session, bg_poste: Image.Image,
+                bg_limpo: Image.Image):
+    """Processa uma imagem PIL ja carregada (reutilizado pelo servidor web).
+    Devolve (image_out:Image, tipo:str, confianca:float, motivo:str|None)."""
     rgb = np.array(rgb_img)
     cut = remove(rgb_img, session=session)
     alpha = np.array(cut)[:, :, 3]
