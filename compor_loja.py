@@ -48,7 +48,7 @@ MODEL_NAME = "isnet-general-use"
 # ------------------------------------------------------------------ Ancora do poste
 # Fracoes relativas ao FundoRoupa.png (1080x1350). Calibrar com --preview.
 ANCHOR_X_FRAC = 0.50      # centro horizontal do poste
-POLE_TOP_Y_FRAC = 0.47    # y onde assenta a BASE do recorte (topo do poste)
+POLE_TOP_Y_FRAC = 0.55    # y onde assenta a BASE do recorte (topo do poste)
 TARGET_H_FRAC = 0.42      # altura do manequim como fracao da altura do fundo
 SHADOW = True             # sombra suave por baixo
 
@@ -79,7 +79,7 @@ def collect_images(source: Path) -> list[Path]:
     for root, _, files in os.walk(source):
         for fname in files:
             if Path(fname).suffix.lower() in EXTENSIONS:
-                images.append(Path(root) / fname)
+                images.append((Path(root) / fname).resolve())
     return images
 
 
@@ -250,13 +250,14 @@ def process_image(path: Path, session, bg_poste: Image.Image,
 
     if tipo == "SWAP":
         out, bg_frac = swap_background(rgb, bg_limpo)
-        # confianca: precisa de algum fundo mas nao demasiado (a comer tecido)
+        # SWAP em fotos de detalhe e pouco fiavel (maos, recortes parciais):
+        # vai sempre para _revisar para o utilizador decidir, nunca para a saida boa.
         if 0.08 <= bg_frac <= 0.70:
-            conf = 0.75
-            motivo = None
+            conf = 0.50
+            motivo = "swap_rever"
         else:
-            conf = 0.45
-            motivo = f"fundo_cinza_suspeito({bg_frac:.2f})"
+            conf = 0.40
+            motivo = f"swap_fundo_suspeito({bg_frac:.2f})"
         return out, tipo, conf, motivo
 
     # KEEP
@@ -264,7 +265,7 @@ def process_image(path: Path, session, bg_poste: Image.Image,
 
 
 def dest_for(src: Path, tipo: str, conf: float, motivo: str | None):
-    rel = src.relative_to(SOURCE_DIR).with_suffix(".png")
+    rel = src.relative_to(SOURCE_DIR.resolve()).with_suffix(".png")
     if conf < CONF_MIN:
         tag = motivo or "baixa_confianca"
         name = f"{rel.stem}__{tipo}_{tag}.png"
