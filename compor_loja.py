@@ -59,11 +59,13 @@ ALPHA_THR = 30            # alfa > isto = foreground
 HERO_COV_MIN, HERO_COV_MAX = 0.18, 0.55
 HERO_BBOX_H_MIN = 0.80
 HERO_EDGE_MAX = 0.20
-GREY_FRAC_MIN = 0.30      # cinza de estudio presente nas bordas
+# Threshold alto = precisao: so planos completos contra fundo de estudio uniforme
+# (claro ou escuro) qualificam; close-ups e cabides ficam KEEP/revisar.
+GREY_FRAC_MIN = 0.58      # fundo de estudio bem presente nas bordas
 
-# Deteccao de cinza neutro de estudio (no espaco RGB 0-255)
-GREY_SAT_MAX = 38         # max-min dos canais (baixa saturacao)
-GREY_VAL_MIN, GREY_VAL_MAX = 90, 210   # brilho medio
+# Deteccao de fundo de estudio neutro (no espaco RGB 0-255)
+GREY_SAT_MAX = 40         # max-min dos canais (baixa saturacao)
+GREY_VAL_MIN, GREY_VAL_MAX = 55, 210   # do cinza escuro ao claro
 
 # Corte da base (poste/madeira por baixo do manequim)
 STAND_NARROW_FRAC = 0.28  # largura "estreita" relativa ao torso = base a cortar
@@ -78,6 +80,8 @@ def collect_images(source: Path) -> list[Path]:
     images = []
     for root, _, files in os.walk(source):
         for fname in files:
+            if fname.upper().startswith("DELETAR"):
+                continue  # ficheiros marcados para apagar pelo utilizador
             if Path(fname).suffix.lower() in EXTENSIONS:
                 images.append((Path(root) / fname).resolve())
     return images
@@ -333,6 +337,7 @@ def run_batch(images: list[Path], label: str):
                 out.save(dest, format="PNG")
                 writer.writerow([str(src), tipo, MODEL_NAME, f"{conf:.2f}",
                                  str(dest), motivo or ""])
+                report.flush()
                 done += 1
                 pbar.set_postfix_str(f"{tipo}{'*' if review else ''} {src.name}")
                 if done % 100 == 0:
