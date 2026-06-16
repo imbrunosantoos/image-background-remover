@@ -2,3 +2,4 @@ rembg
 pillow
 tqdm
 numpy
+flask
