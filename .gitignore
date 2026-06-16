@@ -1,0 +1,19 @@
+# Catalogo de fotos (dados locais, ~23 GB) — nunca versionar
+fotos/
+
+# Saidas geradas pelos scripts (ficam fora do repo, mas por seguranca)
+Camisas_sem_fundo/
+Camisas_loja/
+erros_processamento.txt
+
+# Ficheiros-fonte do Affinity (binarios grandes)
+*.af
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
