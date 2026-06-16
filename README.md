@@ -109,3 +109,32 @@ At the end of the run, review `erros_processamento.txt` to re-process or discard
 | `Pillow` | Image loading and saving |
 | `tqdm` | Progress bar with ETA |
 | `onnxruntime` | ONNX inference engine (installed automatically with rembg) |
+| `numpy` | Mask geometry and grey-background detection |
+
+---
+
+## Store-Scene Composition (`compor_loja.py`)
+
+A second script that goes beyond background removal: it places each jersey into the
+branded **Infinity Imports PT** store scene.
+
+It classifies every photo and handles each type differently:
+
+- **Full mannequin shot** — removes the studio background, trims the metal stand at the
+  bottom and composites the mannequin onto the store scene (`fundos/FundoRoupa.png`),
+  mounted on the display pole.
+- **Detail shot with grey background** — swaps only the grey studio backdrop for the
+  store scene (`fundos/Fundo.jpg`), keeping the original zoom/framing.
+- **Fabric macro** — kept unchanged (no separable background).
+
+Quality is guaranteed without reviewing all 10,000 images: every result gets a
+confidence score, and low-confidence ones are routed to `Camisas_loja/_revisar/` (with
+the reason in the filename) instead of polluting the clean output. A `relatorio.csv`
+records type, model, score and destination per image.
+
+```bash
+python3 compor_loja.py --compare-models "<photo>"   # pick the best cut-out model
+python3 compor_loja.py --preview "<photo>"           # tune the pole anchor
+python3 compor_loja.py --one "<product folder>"      # process one product
+python3 compor_loja.py                               # full batch (resume-safe)
+```
